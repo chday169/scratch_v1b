@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>留言板 - Scratch V1A</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .comment-box {
+      border: 1px solid #ccc;
+      padding: 1em;
+      margin-bottom: 1em;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body class="container mt-5">
+  <h1 class="mb-4">📝 訪客留言板</h1>
+
+  <form id="commentForm" class="mb-4">
+    <div class="mb-3">
+      <label for="name" class="form-label">您的名字</label>
+      <input type="text" class="form-control" id="name" required>
+    </div>
+    <div class="mb-3">
+      <label for="message" class="form-label">留言內容</label>
+      <textarea class="form-control" id="message" rows="3" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">送出留言</button>
+  </form>
+
+  <h3>📚 留言列表</h3>
+  <div id="commentsList"></div>
+
+  <footer class="mt-5 text-center text-muted">
+    <hr>
+    <p>&copy; 2025 Scratch V1A 專案 | 留言模擬版</p>
+  </footer>
+
+  <script>
+    function loadComments() {
+      const comments = JSON.parse(localStorage.getItem('comments') || '[]');
+      const list = document.getElementById('commentsList');
+      list.innerHTML = '';
+      comments.forEach((comment, index) => {
+        const div = document.createElement('div');
+        div.className = 'comment-box';
+        div.innerHTML = `<strong>${comment.name}</strong> 說：<br>${comment.message}`;
+        list.appendChild(div);
+      });
+    }
+
+    document.getElementById('commentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const message = document.getElementById('message').value.trim();
+      if (name && message) {
+        const comments = JSON.parse(localStorage.getItem('comments') || '[]');
+        comments.push({ name, message });
+        localStorage.setItem('comments', JSON.stringify(comments));
+        document.getElementById('commentForm').reset();
+        loadComments();
+      }
+    });
+
+    window.onload = loadComments;
+  </script>
+</body>
+</html>

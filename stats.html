@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>網站統計 - Scratch V1A</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script>
+    // 初始化統計資料
+    function initStats() {
+      if (!localStorage.getItem('totalVisits')) {
+        localStorage.setItem('totalVisits', 0);
+      }
+      if (!localStorage.getItem('articleViews')) {
+        localStorage.setItem('articleViews', JSON.stringify({
+          'v1a_home': 0,
+          'about_me': 0,
+          'comments': 0
+        }));
+      }
+      if (!localStorage.getItem('likes')) {
+        localStorage.setItem('likes', JSON.stringify({
+          'v1a_home': 0,
+          'about_me': 0,
+          'comments': 0
+        }));
+      }
+    }
+
+    // 更新並顯示統計
+    function updateStats() {
+      let visits = parseInt(localStorage.getItem('totalVisits')) + 1;
+      localStorage.setItem('totalVisits', visits);
+      document.getElementById('totalVisits').innerText = visits;
+
+      let views = JSON.parse(localStorage.getItem('articleViews'));
+      let likes = JSON.parse(localStorage.getItem('likes'));
+
+      for (let key in views) {
+        document.getElementById(`views_${key}`).innerText = views[key];
+        document.getElementById(`likes_${key}`).innerText = likes[key];
+      }
+    }
+
+    // 模擬點閱文章
+    function simulateView(article) {
+      let views = JSON.parse(localStorage.getItem('articleViews'));
+      views[article]++;
+      localStorage.setItem('articleViews', JSON.stringify(views));
+      updateStats();
+    }
+
+    // 模擬按讚
+    function simulateLike(article) {
+      let likes = JSON.parse(localStorage.getItem('likes'));
+      likes[article]++;
+      localStorage.setItem('likes', JSON.stringify(likes));
+      updateStats();
+    }
+
+    window.onload = function() {
+      initStats();
+      updateStats();
+    };
+  </script>
+</head>
+<body class="container mt-5">
+  <h1 class="mb-4">📊 網站統計</h1>
+
+  <p>總訪問人數：<strong id="totalVisits">0</strong></p>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>頁面</th>
+        <th>點閱次數</th>
+        <th>按讚次數</th>
+        <th>模擬操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>原首頁 (v1a_home)</td>
+        <td id="views_v1a_home">0</td>
+        <td id="likes_v1a_home">0</td>
+        <td>
+          <button onclick="simulateView('v1a_home')" class="btn btn-sm btn-primary">模擬點閱</button>
+          <button onclick="simulateLike('v1a_home')" class="btn btn-sm btn-success">模擬按讚</button>
+        </td>
+      </tr>
+      <tr>
+        <td>關於我 (about_me)</td>
+        <td id="views_about_me">0</td>
+        <td id="likes_about_me">0</td>
+        <td>
+          <button onclick="simulateView('about_me')" class="btn btn-sm btn-primary">模擬點閱</button>
+          <button onclick="simulateLike('about_me')" class="btn btn-sm btn-success">模擬按讚</button>
+        </td>
+      </tr>
+      <tr>
+        <td>留言板 (comments)</td>
+        <td id="views_comments">0</td>
+        <td id="likes_comments">0</td>
+        <td>
+          <button onclick="simulateView('comments')" class="btn btn-sm btn-primary">模擬點閱</button>
+          <button onclick="simulateLike('comments')" class="btn btn-sm btn-success">模擬按讚</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <footer class="mt-5 text-center text-muted">
+    <hr>
+    <p>&copy; 2025 Scratch V1A 專案 | 統計模擬版</p>
+  </footer>
+</body>
+</html>

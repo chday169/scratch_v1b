@@ -1,0 +1,79 @@
+/* 全站通用樣式 */
+body {
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+  color: #2c3e50;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* 導覽列樣式 */
+nav {
+  margin-bottom: 30px;
+  text-align: center;
+}
+nav a {
+  margin: 0 15px;
+  font-weight: bold;
+  color: #444;
+}
+nav a:hover {
+  color: #007bff;
+}
+
+/* 圖片樣式 */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* 留言板樣式 */
+.comment-box {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+}
+
+/* 搜尋標籤樣式 */
+.keyword-tag {
+  display: inline-block;
+  background-color: #e0e0e0;
+  padding: 6px 12px;
+  margin: 5px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+/* 表單樣式 */
+form input, form textarea {
+  border-radius: 5px;
+}
+
+/* 表格樣式 */
+table th {
+  background-color: #f0f0f0;
+}
+table td, table th {
+  text-align: center;
+}
+
+/* 頁尾樣式 */
+footer {
+  margin-top: 50px;
+  font-size: 14px;
+  color: #888;
+}

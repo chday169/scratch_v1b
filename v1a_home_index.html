@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>📚 PDF 教材平台</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 20px; background: #f0f0f0; }
+    h1 { color: #333; }
+    .container { display: flex; gap: 20px; }
+    .sidebar { width: 260px; }
+    select { width: 100%; font-size: 18px; height: 400px; }
+    button { padding: 8px 12px; font-size: 16px; margin: 5px 0; width: 100%; }
+    .back-btn { background-color: #eee; border: 1px solid #aaa; border-radius: 4px; }
+    canvas { width: 100%; border: 1px solid #ccc; background: #fff; }
+    .status { margin-top: 10px; font-weight: bold; font-size: 18px; }
+    #stats { margin-top: 10px; font-size: 18px; display: flex; align-items: center; gap: 16px; white-space: nowrap; }
+    .stat-block { min-width: 140px; }
+    #likeBtn { width: 40px; height: 40px; font-size: 20px; padding: 0; border-radius: 6px; border: 1px solid #aaa; background-color: #fff; cursor: pointer; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+  </script>
+</head>
+<body>
+  <h1>📄 PDF 教材清單</h1>
+  <div class="container">
+    <div class="sidebar">
+      <select id="pdfSelect" size="10"></select>
+      <button onclick="prevPDF()">⬅️ 上一項</button>
+      <button onclick="nextPDF()">➡️ 下一項</button>
+      <button class="back-btn" onclick="goBack()">🔙 返回主頁</button>
+    </div>
+    <div style="flex: 1;">
+      <canvas id="pdfCanvas"></canvas>
+      <div class="status" id="statusText">尚未選擇 PDF</div>
+      <div style="margin-top: 10px;">
+        <button onclick="prevPage()">📄 上一頁</button>
+        <button onclick="nextPage()">📄 下一頁</button>
+        <span id="pageInfo" style="margin-left: 10px; font-weight: bold;"></span>
+      </div>
+      <div id="stats">
+        <div class="stat-block">👁️ 點閱：<span id="viewCount">00000</span></div>
+        <div class="stat-block">👍 按讚：<span id="likeCount">00000</span></div>
+        <button id="likeBtn" onclick="likePDF()">👍</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const manifestURL = './data/manifest.json';
+    let pdfList = [];
+    let currentIndex = -1;
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentPDF = null;
+
+    async function loadPDFList() {
+      try {
+        const res = await fetch(manifestURL);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('manifest.json 應為陣列格式');
+        pdfList = data;
+
+        const select = document.getElementById('pdfSelect');
+        select.innerHTML = '';
+        pdfList.forEach((item, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = item.title;
+          select.appendChild(option);
+        });
+
+        if (pdfList.length > 0) showPDF(0);
+      } catch (err) {
+        console.error('載入錯誤：', err);
+        document.getElementById('statusText').textContent = '❌ 無法載入 PDF 清單';
+      }
+    }
+
+    function showPDF(index) {
+      if (index < 0 || index >= pdfList.length) return;
+      currentIndex = index;
+      currentPage = 1;
+
+      const fileURL = pdfList[index].url;
+      document.getElementById('statusText').textContent = '⏳ 載入中…';
+
+      pdfjsLib.getDocument(fileURL).promise.then(pdf => {
+        currentPDF = pdf;
+        totalPages = pdf.numPages;
+        renderPage(currentPage);
+        document.getElementById('statusText').textContent =
+          `📘 第 ${index + 1} 項 / 共 ${pdfList.length} 項：${pdfList[index].title}`;
+      }).catch(err => {
+        console.error('PDF 載入失敗：', err.message);
+        document.getElementById('statusText').textContent = '❌ 無法顯示 PDF：' + err.message;
+      });
+
+      document.getElementById('pdfSelect').value = index;
+      pdfList[index].views = (pdfList[index].views || 0) + 1;
+      updateStats(index);
+    }
+
+    function renderPage(pageNum) {
+      currentPDF.getPage(pageNum).then(page => {
+        const scale = 1.5;
+        const viewport = page.getViewport({ scale });
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        page.render(renderContext);
+        document.getElementById('pageInfo').textContent = `📄 第 ${pageNum} 頁 / 共 ${totalPages} 頁`;
+      });
+    }
+
+    function prevPage() {
+      if (currentPDF && currentPage > 1) {
+        currentPage--;
+        renderPage(currentPage);
+      }
+    }
+
+    function nextPage() {
+      if (currentPDF && currentPage < totalPages) {
+        currentPage++;
+        renderPage(currentPage);
+      }
+    }
+
+    function prevPDF() {
+      if (currentIndex > 0) showPDF(currentIndex - 1);
+    }
+
+    function nextPDF() {
+      if (currentIndex < pdfList.length - 1) showPDF(currentIndex + 1);
+    }
+
+    function likePDF() {
+      if (currentIndex >= 0) {
+        pdfList[currentIndex].likes = (pdfList[currentIndex].likes || 0) + 1;
+        updateStats(currentIndex);
+      }
+    }
+
+    function updateStats(index) {
+      const item = pdfList[index];
+      document.getElementById('viewCount').textContent =
+        String(item.views || 0).padStart(5, '0');
+      document.getElementById('likeCount').textContent =
+        String(item.likes || 0).padStart(5, '0');
+    }
+
+    function goBack() {
+      window.location.href = './';
+    }
+
+    document.getElementById('pdfSelect').addEventListener('change', function () {
+      const index = parseInt(this.value);
+      if (!isNaN(index)) showPDF(index);
+    });
+
+    loadPDFList();
+  </script>
+</body>
+</html>
